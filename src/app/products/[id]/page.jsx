@@ -3,44 +3,82 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
+import { RotateLoader } from "react-spinners";
+import { toast } from "react-toastify";
 
-const getImage = (p) => p?.images?.[0] || "/default-product.png";
+const getImage = (p) =>
+  p?.images?.[0] || "/default-product.png";
 
 export default function ProductDetails() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const user = {
     email: "buyer@test.com",
     role: "buyer",
   };
 
+  // FETCH PRODUCT
   useEffect(() => {
+    setLoading(true);
+
     fetch(`http://localhost:5000/products/${id}`)
       .then((res) => res.json())
-      .then(setProduct);
+      .then((data) => {
+        setProduct(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+        toast.error("Failed to load product");
+      });
   }, [id]);
 
-  if (!product)
-    return <p className="text-center py-10">Loading...</p>;
+  // LOADING UI
+  if (loading) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center">
+        <RotateLoader color="#2563eb" />
+        <p className="mt-4 text-gray-500">
+          Loading product...
+        </p>
+      </div>
+    );
+  }
 
   const handleAction = async (type) => {
     if (user.role !== "buyer") {
-      alert("Only buyers allowed");
+      toast.error("Only buyers are allowed");
       return;
     }
 
-    await fetch(`http://localhost:5000/${type}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        productId: product._id,
-        userEmail: user.email,
-        role: user.role,
-      }),
-    });
+    try {
+      const res = await fetch(
+        `http://localhost:5000/${type}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            productId: product._id,
+            userEmail: user.email,
+            role: user.role,
+          }),
+        }
+      );
 
-    alert(type === "orders" ? "Order placed" : "Added to wishlist");
+      if (!res.ok) throw new Error();
+
+      toast.success(
+        type === "orders"
+          ? "Order placed successfully"
+          : "Added to wishlist"
+      );
+    } catch (err) {
+      toast.error("Something went wrong");
+    }
   };
 
   return (
@@ -87,13 +125,18 @@ export default function ProductDetails() {
             </h2>
 
             <p>
-              <span className="font-semibold">Name:</span>{" "}
+              <span className="font-semibold">
+                Name:
+              </span>{" "}
               {product.seller?.name || "Unknown"}
             </p>
 
             <p>
-              <span className="font-semibold">Email:</span>{" "}
-              {product.seller?.email || "Not available"}
+              <span className="font-semibold">
+                Email:
+              </span>{" "}
+              {product.seller?.email ||
+                "Not available"}
             </p>
           </div>
 
@@ -101,7 +144,9 @@ export default function ProductDetails() {
           <div className="flex gap-4 pt-4">
             <motion.button
               whileTap={{ scale: 0.9 }}
-              onClick={() => handleAction("orders")}
+              onClick={() =>
+                handleAction("orders")
+              }
               className="bg-blue-600 text-white px-5 py-3 rounded-xl w-full"
             >
               Buy Now
@@ -109,7 +154,9 @@ export default function ProductDetails() {
 
             <motion.button
               whileTap={{ scale: 0.9 }}
-              onClick={() => handleAction("wishlist")}
+              onClick={() =>
+                handleAction("wishlist")
+              }
               className="bg-pink-600 text-white px-5 py-3 rounded-xl w-full"
             >
               Wishlist
