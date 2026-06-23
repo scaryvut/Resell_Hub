@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { RotateLoader } from "react-spinners";
-import { toast } from "react-toastify";
+
 
 const getImage = (p) =>
   p?.images?.[0] || "/default-product.png";
@@ -29,11 +29,11 @@ export default function CategoryPage() {
       .then((data) => {
         setProducts(data);
         setLoading(false);
-        toast.success("Products loaded successfully");
+        
       })
       .catch(() => {
         setLoading(false);
-        toast.error("Failed to load products");
+        
       });
   }, []);
 
