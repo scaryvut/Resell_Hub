@@ -13,6 +13,9 @@ import {
   FaBars,
   FaSignOutAlt,
   FaUserCircle,
+  FaEnvelope,
+  FaStore,
+  
 } from "react-icons/fa";
 
 import { MdDashboard, MdLogin, MdPersonAdd } from "react-icons/md";
@@ -61,8 +64,8 @@ export default function Navbar() {
     { name: "Home", path: "/", icon: <FaHome /> },
     { name: "Products", path: "/products", icon: <FaBoxOpen /> },
     { name: "Categories", path: "/categories", icon: <FaThLarge /> },
-    { name: "About", path: "/about", icon: <FaThLarge /> },
-    { name: "Contact", path: "/contact", icon: <FaThLarge /> },
+    { name: "About", path: "/about", icon: <FaStore /> },
+    { name: "Contact", path: "/contact", icon: < FaEnvelope /> },
   ];
 
   return (
