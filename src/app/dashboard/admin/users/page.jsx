@@ -18,7 +18,7 @@ export default function ManageUsers() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch("http://localhost:5000/users");
+      const res = await fetch("https://resell-hub-nine.vercel.app/users");
       const data = await res.json();
 
       setUsers(data);
@@ -56,7 +56,7 @@ export default function ManageUsers() {
 
     try {
       await fetch(
-        `http://localhost:5000/users/${user._id}`,
+        `https://resell-hub-nine.vercel.app/users/${user._id}`,
         {
           method: "PATCH",
           headers: {
@@ -84,7 +84,7 @@ export default function ManageUsers() {
 
     try {
       await fetch(
-        `http://localhost:5000/users/${id}`,
+        `https://resell-hub-nine.vercel.app/users/${id}`,
         {
           method: "DELETE",
         }

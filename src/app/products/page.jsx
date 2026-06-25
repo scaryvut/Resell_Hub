@@ -23,7 +23,7 @@ export default function ProductsPage() {
       try {
         setLoading(true);
 
-        const res = await fetch("http://localhost:5000/products");
+        const res = await fetch("https://resell-hub-nine.vercel.app/products");
 
         if (!res.ok) {
           throw new Error("Failed to fetch products");

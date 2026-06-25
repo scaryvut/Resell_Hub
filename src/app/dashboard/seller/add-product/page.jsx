@@ -96,7 +96,7 @@ export default function AddProductPage() {
       };
 
       const res = await fetch(
-        "http://localhost:5000/products",
+        "https://resell-hub-nine.vercel.app/products",
         {
           method: "POST",
           headers: {

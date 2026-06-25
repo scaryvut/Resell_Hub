@@ -46,7 +46,7 @@ export default async function Success({ searchParams }) {
     // Save payment
 
     await fetch(
-      "http://localhost:5000/payments",
+      "https://resell-hub-nine.vercel.app/payments",
       {
         method: "POST",
         headers: {
@@ -70,7 +70,7 @@ export default async function Success({ searchParams }) {
 
     if (orderId) {
       await fetch(
-        `http://localhost:5000/orders/${orderId}`,
+        `https://resell-hub-nine.vercel.app/orders/${orderId}`,
         {
           method: "PATCH",
           headers: {

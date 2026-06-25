@@ -51,7 +51,7 @@ export default function AdminAnalytics() {
     }
 
     fetch(
-      "http://localhost:5000/admin/analytics"
+      "https://resell-hub-nine.vercel.app/admin/analytics"
     )
       .then((res) => res.json())
       .then((data) => {

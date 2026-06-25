@@ -20,9 +20,9 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch("http://localhost:5000/users"),
-      fetch("http://localhost:5000/products"),
-      fetch("http://localhost:5000/orders"),
+      fetch("https://resell-hub-nine.vercel.app/users"),
+      fetch("https://resell-hub-nine.vercel.app/products"),
+      fetch("https://resell-hub-nine.vercel.app/orders"),
     ])
       .then(async ([users, products, orders]) => {
         const usersData = await users.json();
