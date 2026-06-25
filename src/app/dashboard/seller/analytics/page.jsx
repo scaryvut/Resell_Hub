@@ -25,6 +25,8 @@ import {
   FaClock,
 } from "react-icons/fa";
 
+import { authClient } from "@/lib/auth-client";
+
 const COLORS = [
   "#2563eb",
   "#16a34a",
@@ -35,19 +37,36 @@ const COLORS = [
 ];
 
 export default function SellerAnalytics() {
-  const sellerEmail = "seller@gmail.com";
+  const { data: session, isPending } =
+    authClient.useSession();
 
-  const [analytics, setAnalytics] = useState(null);
+  const sellerEmail = session?.user?.email;
+
+  const [analytics, setAnalytics] = useState({
+    totalRevenue: 0,
+    totalProducts: 0,
+    totalOrders: 0,
+    pendingOrders: 0,
+    categoryData: [],
+    orders: [],
+  });
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!sellerEmail) return;
+
     const loadAnalytics = async () => {
       try {
+        setLoading(true);
+
         const res = await fetch(
           `http://localhost:5000/seller/analytics/${sellerEmail}`
         );
 
         const data = await res.json();
+
+        console.log("Analytics:", data);
 
         setAnalytics(data);
       } catch (error) {
@@ -58,13 +77,12 @@ export default function SellerAnalytics() {
     };
 
     loadAnalytics();
-  }, []);
+  }, [sellerEmail]);
 
-  if (loading) {
+  if (isPending || loading) {
     return (
       <div className="h-[70vh] flex flex-col justify-center items-center">
         <RotateLoader color="#2563eb" />
-
         <p className="mt-4 text-gray-500">
           Loading analytics...
         </p>
@@ -84,25 +102,25 @@ export default function SellerAnalytics() {
   const cards = [
     {
       title: "Revenue",
-      value: `৳ ${analytics?.totalRevenue || 0}`,
+      value: `৳ ${analytics.totalRevenue}`,
       icon: <FaMoneyBillWave />,
       color: "from-green-500 to-green-700",
     },
     {
       title: "Products",
-      value: analytics?.totalProducts || 0,
+      value: analytics.totalProducts,
       icon: <FaBoxOpen />,
       color: "from-blue-500 to-blue-700",
     },
     {
       title: "Orders",
-      value: analytics?.totalOrders || 0,
+      value: analytics.totalOrders,
       icon: <FaShoppingCart />,
       color: "from-purple-500 to-purple-700",
     },
     {
       title: "Pending",
-      value: analytics?.pendingOrders || 0,
+      value: analytics.pendingOrders,
       icon: <FaClock />,
       color: "from-orange-500 to-red-500",
     },
@@ -110,21 +128,17 @@ export default function SellerAnalytics() {
 
   return (
     <div className="space-y-8">
-
-      {/* HEADER */}
       <div>
         <h1 className="text-4xl font-bold">
           Analytics Dashboard
         </h1>
 
         <p className="text-gray-500 mt-2">
-          Sales performance and category insights
+          {session?.user?.email}
         </p>
       </div>
 
-      {/* STAT CARDS */}
       <div className="grid md:grid-cols-4 gap-6">
-
         {cards.map((card, index) => (
           <motion.div
             key={index}
@@ -136,7 +150,6 @@ export default function SellerAnalytics() {
             text-white rounded-2xl p-6 shadow-xl`}
           >
             <div className="flex justify-between items-center">
-
               <div>
                 <p className="opacity-80 text-sm">
                   {card.title}
@@ -150,22 +163,13 @@ export default function SellerAnalytics() {
               <div className="text-4xl opacity-80">
                 {card.icon}
               </div>
-
             </div>
           </motion.div>
         ))}
-
       </div>
 
-      {/* CHARTS */}
       <div className="grid lg:grid-cols-2 gap-8">
-
-        {/* CATEGORY PIE CHART */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="bg-white rounded-2xl shadow border p-6"
-        >
+        <div className="bg-white rounded-2xl shadow border p-6">
           <h2 className="text-xl font-bold mb-6">
             Product Categories
           </h2>
@@ -176,13 +180,13 @@ export default function SellerAnalytics() {
           >
             <PieChart>
               <Pie
-                data={analytics?.categoryData || []}
+                data={analytics.categoryData}
                 dataKey="value"
                 nameKey="name"
                 outerRadius={120}
                 label
               >
-                {(analytics?.categoryData || []).map(
+                {analytics.categoryData.map(
                   (_, index) => (
                     <Cell
                       key={index}
@@ -197,18 +201,12 @@ export default function SellerAnalytics() {
               </Pie>
 
               <Tooltip />
-
               <Legend />
             </PieChart>
           </ResponsiveContainer>
-        </motion.div>
+        </div>
 
-        {/* MONTHLY ORDERS */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="bg-white rounded-2xl shadow border p-6"
-        >
+        <div className="bg-white rounded-2xl shadow border p-6">
           <h2 className="text-xl font-bold mb-6">
             Monthly Orders
           </h2>
@@ -219,11 +217,8 @@ export default function SellerAnalytics() {
           >
             <BarChart data={monthlyOrders}>
               <CartesianGrid strokeDasharray="3 3" />
-
               <XAxis dataKey="month" />
-
               <YAxis />
-
               <Tooltip />
 
               <Bar
@@ -233,40 +228,33 @@ export default function SellerAnalytics() {
               />
             </BarChart>
           </ResponsiveContainer>
-        </motion.div>
-
+        </div>
       </div>
 
-      {/* RECENT ORDERS */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="bg-white rounded-2xl shadow border overflow-hidden"
-      >
+      <div className="bg-white rounded-2xl shadow border overflow-hidden">
         <div className="p-5 border-b">
           <h2 className="text-xl font-bold">
             Recent Orders
           </h2>
         </div>
 
-        <div className="overflow-x-auto">
-
+        {analytics.orders?.length === 0 ? (
+          <div className="p-10 text-center text-gray-500">
+            No Orders Found
+          </div>
+        ) : (
           <table className="w-full">
-
             <thead className="bg-gray-50">
               <tr>
                 <th className="p-4 text-left">
                   Buyer
                 </th>
-
                 <th className="p-4 text-left">
                   Product
                 </th>
-
                 <th className="p-4 text-left">
                   Amount
                 </th>
-
                 <th className="p-4 text-left">
                   Status
                 </th>
@@ -274,8 +262,9 @@ export default function SellerAnalytics() {
             </thead>
 
             <tbody>
-              {analytics?.orders?.slice(0, 8).map(
-                (order) => (
+              {analytics.orders
+                ?.slice(0, 8)
+                .map((order) => (
                   <tr
                     key={order._id}
                     className="border-t"
@@ -286,26 +275,23 @@ export default function SellerAnalytics() {
 
                     <td className="p-4">
                       {order.productTitle ||
+                        order.title ||
                         "Product"}
                     </td>
 
                     <td className="p-4">
-                      ৳ {order.price || 0}
+                      ৳ {order.price}
                     </td>
 
                     <td className="p-4 capitalize">
                       {order.status}
                     </td>
                   </tr>
-                )
-              )}
+                ))}
             </tbody>
-
           </table>
-
-        </div>
-      </motion.div>
-
+        )}
+      </div>
     </div>
   );
 }
