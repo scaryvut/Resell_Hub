@@ -1,8 +1,49 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
+import { toast } from "react-toastify";
+import { RotateLoader } from "react-spinners";
 
 export default function AddProductPage() {
+  const [loading, setLoading] = useState(false);
+
+  const categories = [
+    "Electronics",
+    "Mobile Phones",
+    "Laptops",
+    "Computers",
+    "Tablets",
+    "Gaming Consoles",
+    "Gaming Accessories",
+    "Vehicles",
+    "Cars",
+    "Motorcycles",
+    "Bicycles",
+    "Furniture",
+    "Home Appliances",
+    "Kitchen Appliances",
+    "Fashion",
+    "Men's Fashion",
+    "Women's Fashion",
+    "Watches",
+    "Shoes",
+    "Books",
+    "Education",
+    "Sports",
+    "Fitness Equipment",
+    "Health & Beauty",
+    "Smart Devices",
+    "Cameras",
+    "Audio Devices",
+    "Musical Instruments",
+    "Collectibles",
+    "Toys",
+    "Office Equipment",
+    "Pet Supplies",
+    "Others",
+  ];
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -10,68 +51,236 @@ export default function AddProductPage() {
     category: "",
     stock: "",
     condition: "Used",
+    image: "",
   });
 
-  const handleSubmit = (e) => {
+  // Replace with Better Auth session later
+  const seller = {
+    name: "Seller Name",
+    email: "seller@test.com",
+  };
+
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("PRODUCT:", form);
+    try {
+      setLoading(true);
 
-    // TODO: API call
+      const productData = {
+        title: form.title,
+        description: form.description,
+        price: Number(form.price),
+        category: form.category,
+        stock: Number(form.stock),
+        condition: form.condition,
+
+        images: [form.image],
+
+        seller: {
+          name: seller.name,
+          email: seller.email,
+        },
+
+        sellerName: seller.name,
+        sellerEmail: seller.email,
+
+        status: "pending",
+        createdAt: new Date(),
+      };
+
+      const res = await fetch(
+        "http://localhost:5000/products",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(productData),
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.insertedId) {
+        toast.success("Product added successfully ✅");
+
+        setForm({
+          title: "",
+          description: "",
+          price: "",
+          category: "",
+          stock: "",
+          condition: "Used",
+          image: "",
+        });
+      } else {
+        toast.error("Failed to add product ❌");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong ❌");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="max-w-2xl space-y-4">
+    <div className="max-w-5xl mx-auto p-6">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white shadow-xl rounded-3xl p-8"
+      >
+        <h1 className="text-3xl font-bold mb-2">
+          Add New Product
+        </h1>
 
-      <h1 className="text-xl font-bold">Add Product</h1>
+        <p className="text-gray-500 mb-8">
+          Create and publish your product listing
+        </p>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
-
-        <input
-          placeholder="Title"
-          className="w-full border p-2 rounded"
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-        />
-
-        <textarea
-          placeholder="Description"
-          className="w-full border p-2 rounded"
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-        />
-
-        <input
-          placeholder="Price"
-          className="w-full border p-2 rounded"
-          onChange={(e) => setForm({ ...form, price: e.target.value })}
-        />
-
-        <input
-          placeholder="Category"
-          className="w-full border p-2 rounded"
-          onChange={(e) => setForm({ ...form, category: e.target.value })}
-        />
-
-        <input
-          placeholder="Stock"
-          className="w-full border p-2 rounded"
-          onChange={(e) => setForm({ ...form, stock: e.target.value })}
-        />
-
-        <select
-          className="w-full border p-2 rounded"
-          onChange={(e) => setForm({ ...form, condition: e.target.value })}
+        <form
+          onSubmit={handleSubmit}
+          className="grid md:grid-cols-2 gap-5"
         >
-          <option>Used</option>
-          <option>Like New</option>
-          <option>Refurbished</option>
-        </select>
+          {/* TITLE */}
+          <input
+            name="title"
+            value={form.title}
+            onChange={handleChange}
+            placeholder="Product Title"
+            required
+            className="border p-3 rounded-xl"
+          />
 
-        <button className="w-full bg-black text-white p-2 rounded">
-          Create Product
-        </button>
+          {/* PRICE */}
+          <input
+            name="price"
+            type="number"
+            value={form.price}
+            onChange={handleChange}
+            placeholder="Price"
+            required
+            className="border p-3 rounded-xl"
+          />
 
-      </form>
+          {/* CATEGORY DROPDOWN */}
+          <select
+            name="category"
+            value={form.category}
+            onChange={handleChange}
+            required
+            className="border p-3 rounded-xl"
+          >
+            <option value="">
+              Select Category
+            </option>
 
+            {categories.map((category) => (
+              <option
+                key={category}
+                value={category}
+              >
+                {category}
+              </option>
+            ))}
+          </select>
+
+          {/* STOCK */}
+          <input
+            name="stock"
+            type="number"
+            value={form.stock}
+            onChange={handleChange}
+            placeholder="Stock Quantity"
+            required
+            className="border p-3 rounded-xl"
+          />
+
+          {/* IMAGE URL */}
+          <input
+            name="image"
+            value={form.image}
+            onChange={handleChange}
+            placeholder="Image URL"
+            required
+            className="border p-3 rounded-xl md:col-span-2"
+          />
+
+          {/* CONDITION */}
+          <select
+            name="condition"
+            value={form.condition}
+            onChange={handleChange}
+            className="border p-3 rounded-xl"
+          >
+            <option value="Used">
+              Used
+            </option>
+
+            <option value="Like New">
+              Like New
+            </option>
+
+            <option value="Refurbished">
+              Refurbished
+            </option>
+          </select>
+
+          {/* SELLER INFO */}
+          <div className="bg-gray-100 rounded-xl p-3 flex items-center font-medium">
+            Seller: {seller.name}
+          </div>
+
+          {/* DESCRIPTION */}
+          <textarea
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            placeholder="Product Description"
+            rows={5}
+            required
+            className="border p-3 rounded-xl md:col-span-2"
+          />
+
+          {/* IMAGE PREVIEW */}
+          {form.image && (
+            <div className="md:col-span-2">
+              <img
+                src={form.image}
+                alt="Preview"
+                className="w-full h-72 object-cover rounded-xl border"
+              />
+            </div>
+          )}
+
+          {/* SUBMIT BUTTON */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="md:col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-xl font-semibold flex justify-center items-center gap-3"
+          >
+            {loading ? (
+              <>
+                <RotateLoader
+                  size={8}
+                  color="#fff"
+                />
+                Adding Product...
+              </>
+            ) : (
+              "Add Product"
+            )}
+          </button>
+        </form>
+      </motion.div>
     </div>
   );
 }

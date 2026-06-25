@@ -1,109 +1,198 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { RotateLoader } from "react-spinners";
+import {
+  FaSearch,
+  FaTruck,
+  FaCheckCircle,
+  FaBan,
+  FaExclamationTriangle,
+} from "react-icons/fa";
 
 export default function AdminOrders() {
-  // 🔴 Fake data (replace with API later)
-  const [orders, setOrders] = useState([
-    {
-      id: "ORD-1001",
-      buyer: "Rahim",
-      product: "iPhone 13",
-      amount: 85000,
-      status: "Pending",
-    },
-    {
-      id: "ORD-1002",
-      buyer: "Karim",
-      product: "MacBook Pro",
-      amount: 180000,
-      status: "Shipped",
-    },
-    {
-      id: "ORD-1003",
-      buyer: "Sadia",
-      product: "AirPods",
-      amount: 20000,
-      status: "Delivered",
-    },
-    {
-      id: "ORD-1004",
-      buyer: "Nusrat",
-      product: "Gaming Chair",
-      amount: 45000,
-      status: "Disputed",
-    },
-  ]);
+  const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] =
+    useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
-  const updateStatus = (id, newStatus) => {
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === id ? { ...o, status: newStatus } : o
-      )
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost:5000/orders"
+      );
+
+      const data = await res.json();
+
+      setOrders(Array.isArray(data) ? data : []);
+      setFilteredOrders(
+        Array.isArray(data) ? data : []
+      );
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  useEffect(() => {
+    const result = orders.filter(
+      (order) =>
+        order.userEmail
+          ?.toLowerCase()
+          .includes(search.toLowerCase()) ||
+        order.productTitle
+          ?.toLowerCase()
+          .includes(search.toLowerCase())
     );
+
+    setFilteredOrders(result);
+  }, [search, orders]);
+
+  const updateStatus = async (
+    id,
+    newStatus
+  ) => {
+    try {
+      await fetch(
+        `http://localhost:5000/orders/${id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            status: newStatus,
+          }),
+        }
+      );
+
+      fetchOrders();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "Pending":
+      case "pending":
         return "bg-yellow-100 text-yellow-700";
-      case "Shipped":
+
+      case "shipped":
         return "bg-blue-100 text-blue-700";
-      case "Delivered":
+
+      case "delivered":
         return "bg-green-100 text-green-700";
-      case "Cancelled":
+
+      case "cancelled":
         return "bg-red-100 text-red-700";
-      case "Disputed":
+
+      case "disputed":
         return "bg-purple-100 text-purple-700";
+
       default:
         return "bg-gray-100 text-gray-700";
     }
   };
 
+  if (loading) {
+    return (
+      <div className="h-[70vh] flex flex-col justify-center items-center">
+        <RotateLoader color="#2563eb" />
+
+        <p className="mt-4 text-gray-500">
+          Loading Orders...
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="space-y-6">
+
       {/* HEADER */}
-      <h1 className="text-3xl font-bold mb-6">
-        Manage Orders
-      </h1>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <h1 className="text-3xl font-bold">
+          Manage Orders
+        </h1>
+
+        <p className="text-gray-500 mt-2">
+          Monitor and manage all platform
+          orders
+        </p>
+      </motion.div>
+
+      {/* SEARCH */}
+      <div className="relative">
+        <FaSearch className="absolute left-4 top-4 text-gray-400" />
+
+        <input
+          type="text"
+          placeholder="Search order..."
+          value={search}
+          onChange={(e) =>
+            setSearch(e.target.value)
+          }
+          className="w-full pl-12 p-3 border rounded-xl"
+        />
+      </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-2xl shadow border overflow-hidden">
+      <div className="bg-white rounded-3xl shadow overflow-hidden">
 
-        {/* TABLE HEAD */}
-        <div className="grid grid-cols-6 p-4 bg-gray-50 font-semibold text-gray-600 text-sm">
-          <div>Order ID</div>
+        <div className="grid grid-cols-7 bg-gray-50 p-4 font-semibold">
           <div>Buyer</div>
           <div>Product</div>
-          <div>Amount</div>
+          <div>Price</div>
+          <div>Seller</div>
+          <div>Date</div>
           <div>Status</div>
-          <div>Actions</div>
+          <div>Action</div>
         </div>
 
-        {/* ROWS */}
-        {orders.map((order) => (
+        {filteredOrders.map((order) => (
           <motion.div
-            key={order.id}
-            whileHover={{ backgroundColor: "#f9fafb" }}
-            className="grid grid-cols-6 p-4 items-center border-t text-sm"
+            key={order._id}
+            whileHover={{
+              backgroundColor: "#f9fafb",
+            }}
+            className="grid grid-cols-7 items-center p-4 border-t"
           >
-            <div className="font-medium">{order.id}</div>
-
-            <div>{order.buyer}</div>
-
-            <div className="text-gray-600">
-              {order.product}
+            <div>
+              {order.userEmail}
             </div>
 
-            <div className="font-semibold">
-              ৳ {order.amount}
+            <div>
+              {order.productTitle}
             </div>
 
-            {/* STATUS */}
+            <div>
+              ৳ {order.price}
+            </div>
+
+            <div>
+              {order.sellerEmail}
+            </div>
+
+            <div>
+              {new Date(
+                order.createdAt
+              ).toLocaleDateString()}
+            </div>
+
             <div>
               <span
-                className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                className={`px-3 py-1 rounded-full text-xs capitalize ${getStatusColor(
                   order.status
                 )}`}
               >
@@ -111,36 +200,60 @@ export default function AdminOrders() {
               </span>
             </div>
 
-            {/* ACTIONS */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2 flex-wrap">
 
               <button
-                onClick={() => updateStatus(order.id, "Shipped")}
-                className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded"
+                onClick={() =>
+                  updateStatus(
+                    order._id,
+                    "shipped"
+                  )
+                }
+                className="p-2 rounded-lg bg-blue-100 text-blue-700"
+                title="Ship"
               >
-                Ship
+                <FaTruck />
               </button>
 
               <button
-                onClick={() => updateStatus(order.id, "Delivered")}
-                className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded"
+                onClick={() =>
+                  updateStatus(
+                    order._id,
+                    "delivered"
+                  )
+                }
+                className="p-2 rounded-lg bg-green-100 text-green-700"
+                title="Delivered"
               >
-                Deliver
+                <FaCheckCircle />
               </button>
 
               <button
-                onClick={() => updateStatus(order.id, "Cancelled")}
-                className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded"
+                onClick={() =>
+                  updateStatus(
+                    order._id,
+                    "cancelled"
+                  )
+                }
+                className="p-2 rounded-lg bg-red-100 text-red-700"
+                title="Cancel"
               >
-                Cancel
+                <FaBan />
               </button>
 
               <button
-                onClick={() => updateStatus(order.id, "Disputed")}
-                className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded"
+                onClick={() =>
+                  updateStatus(
+                    order._id,
+                    "disputed"
+                  )
+                }
+                className="p-2 rounded-lg bg-purple-100 text-purple-700"
+                title="Dispute"
               >
-                Dispute
+                <FaExclamationTriangle />
               </button>
+
             </div>
           </motion.div>
         ))}

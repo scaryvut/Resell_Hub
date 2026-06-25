@@ -2,106 +2,132 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { FaShoppingCart, FaHeart, FaClock } from "react-icons/fa";
-
-const userEmail = "buyer@test.com";
+import { RotateLoader } from "react-spinners";
+import {
+  FaShoppingBag,
+  FaHeart,
+  FaCheckCircle,
+  FaClock,
+} from "react-icons/fa";
 
 export default function BuyerDashboard() {
-  const [orders, setOrders] = useState([]);
-  const [wishlist, setWishlist] = useState([]);
+  const userEmail = "buyer@test.com";
+
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/orders/${userEmail}`)
-      .then((r) => r.json())
-      .then(setOrders);
+    const loadData = async () => {
+      try {
+        const [ordersRes, wishlistRes] = await Promise.all([
+          fetch(`http://localhost:5000/orders/${userEmail}`),
+          fetch(`http://localhost:5000/wishlist/${userEmail}`),
+        ]);
 
-    fetch(`http://localhost:5000/wishlist/${userEmail}`)
-      .then((r) => r.json())
-      .then(setWishlist);
+        const orders = await ordersRes.json();
+        const wishlist = await wishlistRes.json();
+
+        setStats({
+          totalOrders: orders.length,
+          wishlist: wishlist.length,
+          delivered: orders.filter(
+            (o) => o.status === "delivered"
+          ).length,
+          pending: orders.filter(
+            (o) => o.status === "pending"
+          ).length,
+          recentOrders: orders.slice(0, 5),
+        });
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
-  const stats = [
+  if (loading) {
+    return (
+      <div className="h-[70vh] flex justify-center items-center">
+        <RotateLoader color="#2563eb" />
+      </div>
+    );
+  }
+
+  const cards = [
     {
-      title: "Total Orders",
-      value: orders.length,
-      icon: <FaShoppingCart />,
-      color: "from-blue-500 to-indigo-600",
+      title: "My Orders",
+      value: stats.totalOrders,
+      icon: <FaShoppingBag />,
+      color: "from-blue-500 to-blue-700",
     },
     {
-      title: "Wishlist Items",
-      value: wishlist.length,
+      title: "Wishlist",
+      value: stats.wishlist,
       icon: <FaHeart />,
       color: "from-pink-500 to-red-500",
     },
     {
-      title: "Recent Activity",
-      value: orders.slice(0, 3).length,
+      title: "Delivered",
+      value: stats.delivered,
+      icon: <FaCheckCircle />,
+      color: "from-green-500 to-green-700",
+    },
+    {
+      title: "Pending",
+      value: stats.pending,
       icon: <FaClock />,
-      color: "from-green-500 to-emerald-600",
+      color: "from-orange-500 to-orange-700",
     },
   ];
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-10"
-      >
-        <h1 className="text-4xl font-bold text-gray-800">
-          Buyer Dashboard
-        </h1>
-        <p className="text-gray-500 mt-2">
-          Track your orders, wishlist, and activity
-        </p>
-      </motion.div>
+    <div className="space-y-8">
+      <h1 className="text-4xl font-bold">
+        Buyer Dashboard
+      </h1>
 
-      {/* Cards */}
-      <div className="grid md:grid-cols-3 gap-6">
-        {stats.map((item, index) => (
+      <div className="grid md:grid-cols-4 gap-6">
+        {cards.map((card, i) => (
           <motion.div
-            key={item.title}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            whileHover={{ scale: 1.05 }}
-            className={`rounded-2xl p-6 text-white shadow-lg bg-gradient-to-r ${item.color}`}
+            key={i}
+            whileHover={{ y: -5 }}
+            className={`bg-gradient-to-r ${card.color} text-white rounded-2xl p-6 shadow`}
           >
-            <div className="flex items-center justify-between">
-              <div className="text-3xl opacity-90">
-                {item.icon}
+            <div className="flex justify-between">
+              <div>
+                <p>{card.title}</p>
+                <h2 className="text-3xl font-bold mt-2">
+                  {card.value}
+                </h2>
               </div>
-              <div className="text-right">
-                <p className="text-sm opacity-80">
-                  {item.title}
-                </p>
-                <p className="text-4xl font-bold">
-                  {item.value}
-                </p>
+
+              <div className="text-4xl">
+                {card.icon}
               </div>
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Optional Insight Section */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        className="mt-10 bg-white rounded-2xl shadow p-6"
-      >
-        <h2 className="text-xl font-bold mb-2">
-          Quick Insight
-        </h2>
+      <div className="bg-white rounded-2xl shadow border">
+        <div className="p-5 border-b">
+          <h2 className="font-bold text-xl">
+            Recent Orders
+          </h2>
+        </div>
 
-        <p className="text-gray-600">
-          {orders.length === 0
-            ? "You haven't placed any orders yet. Start exploring products."
-            : `You are actively shopping with ${orders.length} orders placed.`}
-        </p>
-      </motion.div>
+        {stats.recentOrders.map((order) => (
+          <div
+            key={order._id}
+            className="p-4 border-b"
+          >
+            {order.productTitle}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
