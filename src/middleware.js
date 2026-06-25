@@ -1,43 +1,69 @@
 import { NextResponse } from "next/server";
+import { auth } from "./lib/auth";
 
-export async function middleware(req) {
-  const sessionCookie =
-    req.cookies.get("better-auth.session_token");
+export async function middleware(request) {
+  try {
+    const session = await auth.api.getSession({
+      headers: new Headers(request.headers),
+    });
 
-  const pathname = req.nextUrl.pathname;
+    if (!session) {
+      return NextResponse.redirect(
+        new URL("/login", request.url)
+      );
+    }
 
-  // Protected Routes
-  const protectedRoutes = [
-    "/dashboard",
-    "/buyer",
-    "/seller",
-    "/admin",
-    "/profile",
-    "/orders",
-    "/wishlist",
-  ];
+    const role =
+      session.user.role?.toLowerCase();
 
-  const isProtected = protectedRoutes.some(
-    (route) => pathname.startsWith(route)
-  );
+    const pathname =
+      request.nextUrl.pathname;
 
-  if (isProtected && !sessionCookie) {
+    if (
+      pathname.startsWith("/admin") &&
+      role !== "admin"
+    ) {
+      return NextResponse.redirect(
+        new URL("/", request.url)
+      );
+    }
+
+    if (
+      pathname.startsWith("/seller") &&
+      role !== "seller"
+    ) {
+      return NextResponse.redirect(
+        new URL("/", request.url)
+      );
+    }
+
+    if (
+      pathname.startsWith("/buyer") &&
+      role !== "buyer"
+    ) {
+      return NextResponse.redirect(
+        new URL("/", request.url)
+      );
+    }
+
+    return NextResponse.next();
+  } catch (error) {
+    console.log(error);
+
     return NextResponse.redirect(
-      new URL("/login", req.url)
+      new URL("/login", request.url)
     );
   }
-
-  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/buyer/:path*",
-    "/seller/:path*",
     "/admin/:path*",
+    "/seller/:path*",
+    "/buyer/:path*",
+    "/dashboard/:path*",
     "/profile/:path*",
-    "/orders/:path*",
     "/wishlist/:path*",
+    "/orders/:path*",
   ],
 };
