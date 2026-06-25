@@ -4,14 +4,20 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { RotateLoader } from "react-spinners";
 import { toast } from "react-toastify";
+import { authClient } from "@/lib/auth-client";
 
 export default function SellerOrders() {
-  const sellerEmail = "seller@gmail.com";
+  const { data: session, isPending } =
+    authClient.useSession();
+
+  const sellerEmail = session?.user?.email;
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const loadOrders = async () => {
+    if (!sellerEmail) return;
+
     try {
       setLoading(true);
 
@@ -31,8 +37,10 @@ export default function SellerOrders() {
   };
 
   useEffect(() => {
-    loadOrders();
-  }, []);
+    if (sellerEmail) {
+      loadOrders();
+    }
+  }, [sellerEmail]);
 
   const updateStatus = async (id, status) => {
     try {
@@ -80,7 +88,7 @@ export default function SellerOrders() {
     }
   };
 
-  if (loading) {
+  if (isPending || loading) {
     return (
       <div className="h-[70vh] flex justify-center items-center">
         <RotateLoader color="#2563eb" />
@@ -91,18 +99,16 @@ export default function SellerOrders() {
   return (
     <div className="space-y-6">
 
-      {/* PAGE TITLE */}
       <div>
         <h1 className="text-3xl font-bold">
           Manage Orders
         </h1>
 
         <p className="text-gray-500 mt-1">
-          Track and manage customer orders
+          {sellerEmail}
         </p>
       </div>
 
-      {/* TABLE */}
       <div className="bg-white rounded-2xl shadow border overflow-hidden">
 
         <div className="grid grid-cols-6 bg-gray-50 p-4 font-semibold text-gray-600">
@@ -122,16 +128,14 @@ export default function SellerOrders() {
             }}
             className="grid grid-cols-6 items-center p-4 border-t"
           >
+            <div>{order.userEmail}</div>
+
             <div>
-              {order.userEmail}
+              {order.productTitle || order.title}
             </div>
 
             <div>
-              {order.productTitle || "Product"}
-            </div>
-
-            <div>
-              ৳ {order.price || 0}
+              ৳ {order.price}
             </div>
 
             <div>
@@ -209,7 +213,9 @@ export default function SellerOrders() {
             No orders found
           </div>
         )}
+
       </div>
+
     </div>
   );
 }

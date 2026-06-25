@@ -4,8 +4,12 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { RotateLoader } from "react-spinners";
+import { authClient } from "@/lib/auth-client";
 
 export default function AddProductPage() {
+  const { data: session, isPending } =
+    authClient.useSession();
+
   const [loading, setLoading] = useState(false);
 
   const categories = [
@@ -54,12 +58,6 @@ export default function AddProductPage() {
     image: "",
   });
 
-  // Replace with Better Auth session later
-  const seller = {
-    name: "Seller Name",
-    email: "seller@test.com",
-  };
-
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -69,6 +67,11 @@ export default function AddProductPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!session?.user?.email) {
+      toast.error("Please login first");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -83,13 +86,10 @@ export default function AddProductPage() {
 
         images: [form.image],
 
-        seller: {
-          name: seller.name,
-          email: seller.email,
+        sellerInfo: {
+          name: session.user.name,
+          email: session.user.email,
         },
-
-        sellerName: seller.name,
-        sellerEmail: seller.email,
 
         status: "pending",
         createdAt: new Date(),
@@ -109,7 +109,7 @@ export default function AddProductPage() {
       const data = await res.json();
 
       if (data.insertedId) {
-        toast.success("Product added successfully ✅");
+        toast.success("Product Added Successfully");
 
         setForm({
           title: "",
@@ -121,15 +121,23 @@ export default function AddProductPage() {
           image: "",
         });
       } else {
-        toast.error("Failed to add product ❌");
+        toast.error("Failed To Add Product");
       }
     } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong ❌");
+      console.log(error);
+      toast.error("Something Went Wrong");
     } finally {
       setLoading(false);
     }
   };
+
+  if (isPending) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <RotateLoader color="#2563eb" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto p-6">
@@ -150,7 +158,6 @@ export default function AddProductPage() {
           onSubmit={handleSubmit}
           className="grid md:grid-cols-2 gap-5"
         >
-          {/* TITLE */}
           <input
             name="title"
             value={form.title}
@@ -160,7 +167,6 @@ export default function AddProductPage() {
             className="border p-3 rounded-xl"
           />
 
-          {/* PRICE */}
           <input
             name="price"
             type="number"
@@ -171,7 +177,6 @@ export default function AddProductPage() {
             className="border p-3 rounded-xl"
           />
 
-          {/* CATEGORY DROPDOWN */}
           <select
             name="category"
             value={form.category}
@@ -193,7 +198,6 @@ export default function AddProductPage() {
             ))}
           </select>
 
-          {/* STOCK */}
           <input
             name="stock"
             type="number"
@@ -204,7 +208,6 @@ export default function AddProductPage() {
             className="border p-3 rounded-xl"
           />
 
-          {/* IMAGE URL */}
           <input
             name="image"
             value={form.image}
@@ -214,32 +217,29 @@ export default function AddProductPage() {
             className="border p-3 rounded-xl md:col-span-2"
           />
 
-          {/* CONDITION */}
           <select
             name="condition"
             value={form.condition}
             onChange={handleChange}
             className="border p-3 rounded-xl"
           >
-            <option value="Used">
-              Used
-            </option>
-
-            <option value="Like New">
-              Like New
-            </option>
-
+            <option value="Used">Used</option>
+            <option value="Like New">Like New</option>
             <option value="Refurbished">
               Refurbished
             </option>
           </select>
 
-          {/* SELLER INFO */}
-          <div className="bg-gray-100 rounded-xl p-3 flex items-center font-medium">
-            Seller: {seller.name}
+          <div className="bg-gray-100 rounded-xl p-3">
+            <p className="font-semibold">
+              {session?.user?.name}
+            </p>
+
+            <p className="text-sm text-gray-500">
+              {session?.user?.email}
+            </p>
           </div>
 
-          {/* DESCRIPTION */}
           <textarea
             name="description"
             value={form.description}
@@ -250,7 +250,6 @@ export default function AddProductPage() {
             className="border p-3 rounded-xl md:col-span-2"
           />
 
-          {/* IMAGE PREVIEW */}
           {form.image && (
             <div className="md:col-span-2">
               <img
@@ -261,23 +260,14 @@ export default function AddProductPage() {
             </div>
           )}
 
-          {/* SUBMIT BUTTON */}
           <button
             type="submit"
             disabled={loading}
-            className="md:col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-xl font-semibold flex justify-center items-center gap-3"
+            className="md:col-span-2 bg-blue-600 text-white py-3 rounded-xl font-semibold"
           >
-            {loading ? (
-              <>
-                <RotateLoader
-                  size={8}
-                  color="#fff"
-                />
-                Adding Product...
-              </>
-            ) : (
-              "Add Product"
-            )}
+            {loading
+              ? "Adding Product..."
+              : "Add Product"}
           </button>
         </form>
       </motion.div>

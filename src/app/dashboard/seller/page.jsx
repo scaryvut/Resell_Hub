@@ -10,7 +10,12 @@ import {
   FaClock,
 } from "react-icons/fa";
 
+import { authClient } from "@/lib/auth-client";
+
 export default function SellerDashboard() {
+  const { data: session, isPending } =
+    authClient.useSession();
+
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalOrders: 0,
@@ -21,24 +26,23 @@ export default function SellerDashboard() {
 
   const [loading, setLoading] = useState(true);
 
-  // ⚠️ Database email use karo
-  const sellerEmail = "seller4@gmail.com";
-
   useEffect(() => {
+    if (!session?.user?.email) return;
+
     fetchAnalytics();
-  }, []);
+  }, [session]);
 
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
 
       const res = await fetch(
-        `http://localhost:5000/seller/analytics/${sellerEmail}`
+        `http://localhost:5000/seller/analytics/${session.user.email}`
       );
 
       const data = await res.json();
 
-      console.log("Analytics Data:", data);
+      console.log("Analytics:", data);
 
       setStats(data);
     } catch (error) {
@@ -48,11 +52,13 @@ export default function SellerDashboard() {
     }
   };
 
-  if (loading) {
+  if (isPending || loading) {
     return (
       <div className="h-[70vh] flex flex-col items-center justify-center">
         <RotateLoader color="#2563eb" />
-        <p className="mt-4">Loading Dashboard...</p>
+        <p className="mt-4">
+          Loading Dashboard...
+        </p>
       </div>
     );
   }
@@ -92,12 +98,14 @@ export default function SellerDashboard() {
           Seller Dashboard
         </h1>
 
-        <p className="text-gray-500">
-          Welcome Back Seller
+        <p className="text-gray-500 mt-2">
+          Welcome, {session?.user?.name}
+        </p>
+
+        <p className="text-sm text-gray-400">
+          {session?.user?.email}
         </p>
       </div>
-
-      {/* Cards */}
 
       <div className="grid md:grid-cols-4 gap-6">
         {cards.map((card, index) => (
@@ -126,8 +134,6 @@ export default function SellerDashboard() {
           </motion.div>
         ))}
       </div>
-
-      {/* Recent Orders */}
 
       <div className="bg-white rounded-2xl shadow border overflow-hidden">
 
@@ -160,14 +166,13 @@ export default function SellerDashboard() {
             </thead>
 
             <tbody>
-              {stats.orders.slice(0, 5).map((order) => (
+              {stats.orders.map((order) => (
                 <tr
                   key={order._id}
                   className="border-t"
                 >
                   <td className="p-4">
-                    {order.userEmail ||
-                      "Unknown"}
+                    {order.userEmail}
                   </td>
 
                   <td className="p-4 capitalize">
@@ -175,7 +180,7 @@ export default function SellerDashboard() {
                   </td>
 
                   <td className="p-4">
-                    ৳ {order.price || 0}
+                    ৳ {order.price}
                   </td>
                 </tr>
               ))}
@@ -184,17 +189,6 @@ export default function SellerDashboard() {
         )}
       </div>
 
-      {/* Debug Section */}
-
-      <div className="bg-gray-100 p-4 rounded-xl">
-        <h3 className="font-bold mb-2">
-          Debug Data
-        </h3>
-
-        <pre className="text-xs overflow-auto">
-          {JSON.stringify(stats, null, 2)}
-        </pre>
-      </div>
     </div>
   );
 }
