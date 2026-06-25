@@ -1,144 +1,95 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "@/lib/auth-client";
 import { RotateLoader } from "react-spinners";
 import { toast } from "react-toastify";
 
 export default function MyOrders() {
-  const { data: session, isPending } =
-    useSession();
+  const userEmail = "buyer@test.com";
 
-  const [orders, setOrders] =
-    useState([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const userEmail =
-    session?.user?.email;
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const loadOrders = async () => {
-    if (!userEmail) return;
-
     try {
-      setLoading(true);
-
       const res = await fetch(
         `http://localhost:5000/orders/${userEmail}`
       );
 
       const data = await res.json();
 
-      console.log("Orders:", data);
-
-      setOrders(
-        Array.isArray(data)
-          ? data
-          : []
-      );
+      setOrders(data);
     } catch (error) {
-      console.error(error);
-
-      toast.error(
-        "Failed to load orders"
-      );
+      console.log(error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!userEmail) return;
-
     loadOrders();
-  }, [userEmail]);
+  }, []);
 
-  const handlePayment = async (
-    order
-  ) => {
+ const handlePayment = async (order) => {
+  try {
+    const response = await fetch(
+      "/api/checkout",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          orderId: order._id,
+          title:
+            order.productTitle ||
+            order.title,
+          price: order.price,
+        }),
+      }
+    );
+
+    const data =
+      await response.json();
+
+    if (data.url) {
+      window.location.href =
+        data.url;
+    }
+  } catch (error) {
+    console.log(error);
+    toast.error(
+      "Failed to start payment"
+    );
+  }
+};
+
+  const handleCancel = async (id) => {
     try {
-      const res = await fetch(
-        "/api/checkout",
+      await fetch(
+        `http://localhost:5000/orders/${id}`,
         {
-          method: "POST",
+          method: "PATCH",
           headers: {
-            "Content-Type":
-              "application/json",
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            price: order.price,
-            orderId: order._id,
-            productTitle:
-              order.title,
+            status: "cancelled",
           }),
         }
       );
 
-      const data =
-        await res.json();
+      toast.success("Order Cancelled");
 
-      if (!res.ok) {
-        throw new Error(
-          data.error ||
-            "Payment failed"
-        );
-      }
-
-      if (data.url) {
-        window.location.href =
-          data.url;
-      }
+      loadOrders();
     } catch (error) {
-      console.error(error);
-
-      toast.error(
-        error.message ||
-          "Payment failed"
-      );
+      console.log(error);
+      toast.error("Failed To Cancel");
     }
   };
 
-  const handleCancel =
-    async (id) => {
-      try {
-        const res = await fetch(
-          `http://localhost:5000/orders/${id}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify({
-              orderStatus:
-                "cancelled",
-            }),
-          }
-        );
-
-        if (!res.ok) {
-          throw new Error();
-        }
-
-        toast.success(
-          "Order cancelled"
-        );
-
-        loadOrders();
-      } catch (error) {
-        console.error(error);
-
-        toast.error(
-          "Cancel failed"
-        );
-      }
-    };
-
-  if (
-    loading ||
-    isPending
-  ) {
+  if (loading) {
     return (
       <div className="h-[70vh] flex justify-center items-center">
         <RotateLoader color="#2563eb" />
@@ -147,15 +98,10 @@ export default function MyOrders() {
   }
 
   return (
-    <div className="p-6">
-
-      <h1 className="text-3xl font-bold mb-2">
+    <div>
+      <h1 className="text-3xl font-bold mb-6">
         My Orders
       </h1>
-
-      <p className="text-gray-500 mb-6">
-        {userEmail}
-      </p>
 
       <div className="bg-white rounded-2xl shadow border overflow-hidden">
 
@@ -163,8 +109,8 @@ export default function MyOrders() {
           <div>Product</div>
           <div>Price</div>
           <div>Status</div>
+          <div>Date</div>
           <div>Payment</div>
-          <div>Order ID</div>
           <div>Action</div>
         </div>
 
@@ -179,81 +125,69 @@ export default function MyOrders() {
               className="grid grid-cols-6 p-4 border-t items-center"
             >
               <div className="font-medium">
-                {order.title}
+                {order.productTitle ||
+                  order.title ||
+                  "Unknown Product"}
               </div>
 
               <div>
-                ৳ {order.price}
+                ৳ {order.price || 0}
               </div>
 
               <div>
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    order.orderStatus ===
-                    "delivered"
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    order.status === "delivered"
                       ? "bg-green-100 text-green-700"
-                      : order.orderStatus ===
-                        "processing"
-                      ? "bg-blue-100 text-blue-700"
-                      : order.orderStatus ===
-                        "cancelled"
+                      : order.status === "cancelled"
                       ? "bg-red-100 text-red-700"
                       : "bg-yellow-100 text-yellow-700"
                   }`}
                 >
-                  {order.orderStatus}
+                  {order.status}
                 </span>
               </div>
 
               <div>
-                {order.paymentStatus ===
-                "paid" ? (
+                {order.createdAt
+                  ? new Date(
+                      order.createdAt
+                    ).toLocaleDateString()
+                  : "N/A"}
+              </div>
+
+              <div>
+                {order.paymentStatus === "paid" ? (
                   <span className="text-green-600 font-semibold">
                     Paid
                   </span>
                 ) : (
                   <button
                     onClick={() =>
-                      handlePayment(
-                        order
-                      )
+                      handlePayment(order)
                     }
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-xs"
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
                   >
                     Pay Now
                   </button>
                 )}
               </div>
 
-              <div className="text-xs text-gray-500">
-                {order._id}
-              </div>
-
               <div>
-                {order.orderStatus !==
-                  "cancelled" &&
-                order.orderStatus !==
-                  "delivered" ? (
+                {order.status === "pending" && (
                   <button
                     onClick={() =>
-                      handleCancel(
-                        order._id
-                      )
+                      handleCancel(order._id)
                     }
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-xs"
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
                   >
                     Cancel
                   </button>
-                ) : (
-                  <span className="text-gray-400">
-                    —
-                  </span>
                 )}
               </div>
             </div>
           ))
         )}
-
       </div>
     </div>
   );

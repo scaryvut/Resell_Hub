@@ -1,239 +1,107 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "@/lib/auth-client";
 import { motion } from "framer-motion";
-import { RotateLoader } from "react-spinners";
-import {
-  FaShoppingBag,
-  FaHeart,
-  FaCheckCircle,
-  FaClock,
-} from "react-icons/fa";
+import { FaShoppingCart, FaHeart, FaClock } from "react-icons/fa";
+
+const userEmail = "buyer@test.com";
 
 export default function BuyerDashboard() {
-  const { data: session, isPending } =
-    useSession();
-
-  const [stats, setStats] = useState({
-    totalOrders: 0,
-    wishlist: 0,
-    delivered: 0,
-    pending: 0,
-    recentOrders: [],
-  });
-
-  const [loading, setLoading] =
-    useState(true);
+  const [orders, setOrders] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
 
   useEffect(() => {
-    if (!session?.user?.email) return;
+    fetch(`http://localhost:5000/orders/${userEmail}`)
+      .then((r) => r.json())
+      .then(setOrders);
 
-    const loadData = async () => {
-      try {
-        setLoading(true);
+    fetch(`http://localhost:5000/wishlist/${userEmail}`)
+      .then((r) => r.json())
+      .then(setWishlist);
+  }, []);
 
-        const email =
-          session.user.email;
-
-        const [ordersRes, wishlistRes] =
-          await Promise.all([
-            fetch(
-              `http://localhost:5000/orders/${email}`
-            ),
-            fetch(
-              `http://localhost:5000/wishlist/${email}`
-            ),
-          ]);
-
-        const orders =
-          await ordersRes.json();
-
-        const wishlist =
-          await wishlistRes.json();
-
-        const ordersArray =
-          Array.isArray(orders)
-            ? orders
-            : [];
-
-        const wishlistArray =
-          Array.isArray(wishlist)
-            ? wishlist
-            : [];
-
-        setStats({
-          orders:
-            ordersArray.length,
-
-          wishlist:
-            wishlistArray.length,
-
-          delivered:
-            ordersArray.filter(
-              (o) =>
-                o.orderStatus ===
-                "delivered"
-            ).length,
-
-          pending:
-            ordersArray.filter(
-              (o) =>
-                o.orderStatus ===
-                  "pending" ||
-                o.orderStatus ===
-                  "processing"
-            ).length,
-
-          recentOrders:
-            ordersArray.slice(0, 5),
-        });
-      } catch (err) {
-        console.log(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [session]);
-
-  if (isPending || loading) {
-    return (
-      <div className="h-[70vh] flex justify-center items-center">
-        <RotateLoader color="#2563eb" />
-      </div>
-    );
-  }
-
-  const cards = [
+  const stats = [
     {
-      title: "My Orders",
-      value: stats.orders,
-      icon: <FaShoppingBag />,
-      color:
-        "from-blue-500 to-blue-700",
+      title: "Total Orders",
+      value: orders.length,
+      icon: <FaShoppingCart />,
+      color: "from-blue-500 to-indigo-600",
     },
     {
-      title: "Wishlist",
-      value: stats.wishlist,
+      title: "Wishlist Items",
+      value: wishlist.length,
       icon: <FaHeart />,
-      color:
-        "from-pink-500 to-red-500",
+      color: "from-pink-500 to-red-500",
     },
     {
-      title: "Delivered",
-      value: stats.delivered,
-      icon: <FaCheckCircle />,
-      color:
-        "from-green-500 to-green-700",
-    },
-    {
-      title: "Pending",
-      value: stats.pending,
+      title: "Recent Activity",
+      value: orders.slice(0, 3).length,
       icon: <FaClock />,
-      color:
-        "from-orange-500 to-orange-700",
+      color: "from-green-500 to-emerald-600",
     },
   ];
 
   return (
-    <div className="space-y-8">
-
-      <div>
-        <h1 className="text-4xl font-bold">
+    <div className="p-6 max-w-6xl mx-auto">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-10"
+      >
+        <h1 className="text-4xl font-bold text-gray-800">
           Buyer Dashboard
         </h1>
-
         <p className="text-gray-500 mt-2">
-          Welcome back,{" "}
-          {session?.user?.name}
+          Track your orders, wishlist, and activity
         </p>
-      </div>
+      </motion.div>
 
-      <div className="grid md:grid-cols-4 gap-6">
-        {cards.map((card, i) => (
+      {/* Cards */}
+      <div className="grid md:grid-cols-3 gap-6">
+        {stats.map((item, index) => (
           <motion.div
-            key={i}
-            whileHover={{
-              y: -5,
-            }}
-            className={`bg-gradient-to-r ${card.color} text-white rounded-2xl p-6 shadow-lg`}
+            key={item.title}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            whileHover={{ scale: 1.05 }}
+            className={`rounded-2xl p-6 text-white shadow-lg bg-gradient-to-r ${item.color}`}
           >
-            <div className="flex justify-between items-center">
-
-              <div>
-                <p className="text-white/80">
-                  {card.title}
+            <div className="flex items-center justify-between">
+              <div className="text-3xl opacity-90">
+                {item.icon}
+              </div>
+              <div className="text-right">
+                <p className="text-sm opacity-80">
+                  {item.title}
                 </p>
-
-                <h2 className="text-3xl font-bold mt-2">
-                  {card.value}
-                </h2>
+                <p className="text-4xl font-bold">
+                  {item.value}
+                </p>
               </div>
-
-              <div className="text-4xl opacity-80">
-                {card.icon}
-              </div>
-
             </div>
           </motion.div>
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl shadow border overflow-hidden">
+      {/* Optional Insight Section */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="mt-10 bg-white rounded-2xl shadow p-6"
+      >
+        <h2 className="text-xl font-bold mb-2">
+          Quick Insight
+        </h2>
 
-        <div className="p-5 border-b">
-          <h2 className="font-bold text-xl">
-            Recent Orders
-          </h2>
-        </div>
-
-        {stats.recentOrders.length ===
-        0 ? (
-          <div className="p-10 text-center text-gray-500">
-            No Orders Found
-          </div>
-        ) : (
-          stats.recentOrders.map(
-            (order) => (
-              <div
-                key={order._id}
-                className="p-4 border-b flex justify-between items-center"
-              >
-                <div>
-                  <h3 className="font-semibold">
-                    {order.title}
-                  </h3>
-
-                  <p className="text-sm text-gray-500">
-                    ৳
-                    {order.price}
-                  </p>
-                </div>
-
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    order.orderStatus ===
-                    "delivered"
-                      ? "bg-green-100 text-green-700"
-                      : order.orderStatus ===
-                        "processing"
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}
-                >
-                  {
-                    order.orderStatus
-                  }
-                </span>
-              </div>
-            )
-          )
-        )}
-
-      </div>
-
+        <p className="text-gray-600">
+          {orders.length === 0
+            ? "You haven't placed any orders yet. Start exploring products."
+            : `You are actively shopping with ${orders.length} orders placed.`}
+        </p>
+      </motion.div>
     </div>
   );
 }

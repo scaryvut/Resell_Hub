@@ -48,38 +48,63 @@ export default function ProductDetails() {
   }
 
   const handleAction = async (type) => {
-    if (user.role !== "buyer") {
-      toast.error("Only buyers are allowed");
-      return;
-    }
+  try {
+    const payload =
+      type === "orders"
+        ? {
+            buyerInfo: {
+              email: user.email,
+              name: "Buyer User",
+            },
 
-    try {
-      const res = await fetch(
-        `http://localhost:5000/${type}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+            sellerInfo: {
+              email:
+                product.sellerInfo?.email,
+              name:
+                product.sellerInfo?.name,
+            },
+
             productId: product._id,
+            title: product.title,
+            price: product.price,
+            orderStatus: "pending",
+            paymentStatus: "unpaid",
+            createdAt: new Date(),
+          }
+        : {
             userEmail: user.email,
-            role: user.role,
-          }),
-        }
-      );
+            productId: product._id,
+            title: product.title,
+            price: product.price,
+            createdAt: new Date(),
+          };
 
-      if (!res.ok) throw new Error();
+    const res = await fetch(
+      `http://localhost:5000/${type}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
 
-      toast.success(
-        type === "orders"
-          ? "Order placed successfully"
-          : "Added to wishlist"
-      );
-    } catch (err) {
-      toast.error("Something went wrong");
-    }
-  };
+    if (!res.ok)
+      throw new Error();
+
+    toast.success(
+      type === "orders"
+        ? "Order placed successfully"
+        : "Added to wishlist"
+    );
+  } catch (err) {
+    toast.error(
+      "Something went wrong"
+    );
+  }
+};
 
   return (
     <motion.div
