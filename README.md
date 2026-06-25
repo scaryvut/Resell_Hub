@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🛒 ResellHub Client
 
-## Getting Started
+The modern, responsive frontend application for the **ResellHub Marketplace**. Built with Next.js 15, Tailwind CSS, and Better Auth, this application features full Role-Based Access Control (RBAC) to offer dedicated, tailored experiences for **Buyers**, **Sellers**, and **Admins**.
 
-First, run the development server:
+🌐 **[Live Demo](https://your-live-site.vercel.app)**
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Features
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### 🔐 Authentication & Security
+* **Better Auth Integration:** Secure credential login and Next.js middleware protection.
+* **Social Login:** Single-click authentication with Google OAuth.
+* **Role-Based Access Control (RBAC):** Automatic dashboard routing according to user role permissions.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 🛍️ Buyer Experience
+* **Product Discovery:** Seamlessly browse globally approved marketplace items.
+* **Dynamic Wishlists:** Keep track of desired products before moving to checkout.
+* **Secure Stripe Payments:** Integrated Stripe checkout pipeline complete with persistent order and payment history.
 
-## Learn More
+### 💼 Seller Features
+* **Inventory Management:** Effortlessly add products, track listings, and update stock status.
+* **Order Tracking:** Keep real-time tabs on customer orders pending fulfillment.
+* **Sales Analytics:** Visual summaries of earnings and sales performance.
 
-To learn more about Next.js, take a look at the following resources:
+### 🛡️ Admin Management
+* **Moderation Pipeline:** Review, approve, or reject incoming seller product submissions.
+* **User Management:** Full platform oversight to view and manage user roles.
+* **Platform Metrics:** Deep analytics dashboard displaying overarching marketplace health.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 🎨 UI/UX Essentials
+* **Framer Motion Animations:** Smooth dynamic transitions and responsive item animations.
+* **Toast Notifications:** Immediate, non-intrusive feedback for critical user interactions via React Toastify.
+* **Fully Responsive:** Beautifully adaptive interface built for mobile, tablet, and desktop viewports.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🛠️ Technologies Used
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+* **Core Framework:** Next.js 15 (App Router) & React
+* **Styling:** Tailwind CSS & React Icons
+* **Animations:** Framer Motion
+* **Charts & Data:** Recharts
+* **Authentication:** Better Auth & Google OAuth
+* **Payments:** Stripe Client SDK
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 📁 Folder Structure
+
+```text
+src/
+│
+├── app/
+│   ├── dashboard/           # Role-segmented user panels
+│   │   ├── admin/
+│   │   ├── seller/
+│   │   └── buyer/
+│   ├── login/
+│   ├── register/
+│   ├── products/            # Dynamic marketplace feeds and details
+│   ├── success/             # Stripe checkout success landing page
+│   └── page.jsx             # Home landing page
+│
+├── components/              # Shared global UI components
+├── lib/                     # Service initializations (Auth, Stripe)
+│   ├── auth.js
+│   ├── auth-client.js
+│   └── stripe.js
+├── hooks/                   # Reusable custom React hooks
+└── middleware.js            # Global edge route protection

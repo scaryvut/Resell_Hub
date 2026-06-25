@@ -219,11 +219,11 @@ export default function AdminOrders() {
                 onClick={() =>
                   updateStatus(
                     order._id,
-                    "delivered"
+                    "approved"
                   )
                 }
                 className="p-2 rounded-lg bg-green-100 text-green-700"
-                title="Delivered"
+                title="Approve"
               >
                 <FaCheckCircle />
               </button>
