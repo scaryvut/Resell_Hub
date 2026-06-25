@@ -63,7 +63,7 @@ export default function BuyerDashboard() {
             : [];
 
         setStats({
-          totalOrders:
+          orders:
             ordersArray.length,
 
           wishlist:
@@ -109,7 +109,7 @@ export default function BuyerDashboard() {
   const cards = [
     {
       title: "My Orders",
-      value: stats.totalOrders,
+      value: stats.orders,
       icon: <FaShoppingBag />,
       color:
         "from-blue-500 to-blue-700",
