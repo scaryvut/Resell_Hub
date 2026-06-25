@@ -1,16 +1,37 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSession } from "@/lib/auth-client";
+
 export default function PaymentHistory() {
-  const payments = [
-    {
-      amount: "$400",
-      date: "2026-06-22",
-      status: "Paid",
-    },
-    {
-      amount: "$250",
-      date: "2026-06-18",
-      status: "Paid",
-    },
-  ];
+  const { data: session } = useSession();
+
+  const [payments, setPayments] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  useEffect(() => {
+    if (!session?.user?.email) return;
+
+    fetch(
+      `http://localhost:5000/payments/${session.user.email}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setPayments(data);
+        setLoading(false);
+      });
+  }, [session]);
+
+  if (loading) {
+    return (
+      <div className="text-center py-10">
+        Loading Payments...
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -18,20 +39,49 @@ export default function PaymentHistory() {
         Payment History
       </h1>
 
-      <div className="space-y-4">
+      {payments.length === 0 ? (
+        <div className="bg-white p-8 rounded-2xl shadow text-center">
+          No Payments Found
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {payments.map((payment) => (
+            <div
+              key={payment._id}
+              className="bg-white p-5 rounded-2xl shadow"
+            >
+              <div className="flex justify-between">
+                <span className="font-semibold">
+                  $
+                  {payment.amount}
+                </span>
 
-        {payments.map((payment, index) => (
-          <div
-            key={index}
-            className="bg-white p-5 rounded-2xl shadow flex justify-between"
-          >
-            <span>{payment.amount}</span>
-            <span>{payment.date}</span>
-            <span>{payment.status}</span>
-          </div>
-        ))}
+                <span className="text-green-600">
+                  {payment.paymentStatus}
+                </span>
+              </div>
 
-      </div>
+              <div className="mt-2 text-sm text-gray-500">
+                Transaction:
+                {" "}
+                {payment.transactionId}
+              </div>
+
+              <div className="text-sm text-gray-500">
+                Order:
+                {" "}
+                {payment.orderId}
+              </div>
+
+              <div className="text-sm text-gray-500">
+                {new Date(
+                  payment.paymentDate
+                ).toLocaleDateString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
