@@ -11,11 +11,11 @@ export default function BuyerDashboard() {
   const [wishlist, setWishlist] = useState([]);
 
   useEffect(() => {
-    fetch(`https://resell-hub-nine.vercel.app/orders/${userEmail}`)
+    fetch(`http://localhost:5000/orders/${userEmail}`)
       .then((r) => r.json())
       .then(setOrders);
 
-    fetch(`https://resell-hub-nine.vercel.app/wishlist/${userEmail}`)
+    fetch(`http://localhost:5000/wishlist/${userEmail}`)
       .then((r) => r.json())
       .then(setWishlist);
   }, []);

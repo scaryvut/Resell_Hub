@@ -23,7 +23,7 @@ export default function ProductDetails() {
   useEffect(() => {
     setLoading(true);
 
-    fetch(`https://resell-hub-nine.vercel.app/products/${id}`)
+    fetch(`http://localhost:5000/products/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setProduct(data);
@@ -80,7 +80,7 @@ export default function ProductDetails() {
           };
 
     const res = await fetch(
-      `https://resell-hub-nine.vercel.app/${type}`,
+      `http://localhost:5000/${type}`,
       {
         method: "POST",
         headers: {

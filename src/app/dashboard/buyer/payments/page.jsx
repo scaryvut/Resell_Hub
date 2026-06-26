@@ -22,7 +22,7 @@ export default function PaymentHistory() {
     if (!session?.user?.email) return;
 
     fetch(
-      `https://resell-hub-nine.vercel.app/payments/${session.user.email}`
+      `http://localhost:5000/payments/${session.user.email}`
     )
       .then((res) => res.json())
       .then((data) => {

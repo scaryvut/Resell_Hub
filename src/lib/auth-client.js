@@ -1,7 +1,7 @@
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-  baseURL: "https://resell-hub-nine.vercel.app",
+  baseURL: "https://localhost:3000",
 });
 
 export const {
