@@ -21,7 +21,7 @@ export default function AdminOrders() {
   const fetchOrders = async () => {
     try {
       const res = await fetch(
-        "https://resell-hub-nine.vercel.app/orders"
+        "http://localhost:5000/orders"
       );
 
       const data = await res.json();
@@ -61,7 +61,7 @@ export default function AdminOrders() {
   ) => {
     try {
       await fetch(
-        `https://resell-hub-nine.vercel.app/orders/${id}`,
+        `http://localhost:5000/orders/${id}`,
         {
           method: "PATCH",
           headers: {

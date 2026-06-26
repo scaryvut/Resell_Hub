@@ -26,7 +26,7 @@ export default function SellerProducts() {
       setLoading(true);
 
       const res = await fetch(
-        `https://resell-hub-nine.vercel.app/seller-products/${sellerEmail}`
+        `http://localhost:5000/seller-products/${sellerEmail}`
       );
 
       const data = await res.json();
@@ -45,7 +45,7 @@ export default function SellerProducts() {
   const deleteProduct = async (id) => {
     try {
       const res = await fetch(
-        `https://resell-hub-nine.vercel.app/products/${id}`,
+        `http://localhost:5000/products/${id}`,
         {
           method: "DELETE",
         }

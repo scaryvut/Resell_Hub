@@ -22,7 +22,7 @@ export default function SellerOrders() {
       setLoading(true);
 
       const res = await fetch(
-        `https://resell-hub-nine.vercel.app/seller-orders/${sellerEmail}`
+        `http://localhost:5000/seller-orders/${sellerEmail}`
       );
 
       const data = await res.json();
@@ -45,7 +45,7 @@ export default function SellerOrders() {
   const updateStatus = async (id, status) => {
     try {
       const res = await fetch(
-        `https://resell-hub-nine.vercel.app/orders/${id}`,
+        `http://localhost:5000/orders/${id}`,
         {
           method: "PATCH",
           headers: {

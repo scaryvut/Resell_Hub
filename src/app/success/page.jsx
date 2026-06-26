@@ -46,7 +46,7 @@ export default async function Success({ searchParams }) {
     // Save payment
 
     await fetch(
-      "https://resell-hub-nine.vercel.app/payments",
+      "http://localhost:5000/payments",
       {
         method: "POST",
         headers: {
