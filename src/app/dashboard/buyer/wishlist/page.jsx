@@ -18,7 +18,7 @@ export default function WishlistPage() {
       setLoading(true);
 
       const res = await fetch(
-        `http://localhost:5000/wishlist/${userEmail}`
+        `https://resell-hub-server-six.vercel.app/wishlist/${userEmail}`
       );
 
       const data = await res.json();
@@ -40,7 +40,7 @@ export default function WishlistPage() {
   const removeItem = async (id) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/wishlist/${id}`,
+        `https://resell-hub-server-six.vercel.app/wishlist/${id}`,
         {
           method: "DELETE",
         }

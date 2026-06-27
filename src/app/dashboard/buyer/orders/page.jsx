@@ -13,7 +13,7 @@ export default function MyOrders() {
   const loadOrders = async () => {
     try {
       const res = await fetch(
-        `http://localhost:5000/orders/${userEmail}`
+        `https://resell-hub-server-six.vercel.app/orders/${userEmail}`
       );
 
       const data = await res.json();
@@ -68,7 +68,7 @@ export default function MyOrders() {
   const handleCancel = async (id) => {
     try {
       await fetch(
-        `http://localhost:5000/orders/${id}`,
+        `https://resell-hub-server-six.vercel.app/orders/${id}`,
         {
           method: "PATCH",
           headers: {
