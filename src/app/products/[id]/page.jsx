@@ -47,21 +47,44 @@ export default function ProductDetails() {
     );
   }
 
-  const handleAction = async (type) => {
+const handleAction = async (type) => {
+  // Not logged in
+  if (!user) {
+    toast.warning("Please login first.");
+    router.push("/login");
+    return;
+  }
+
+  // Admin
+  if (user.role === "admin") {
+    toast.error("Admins cannot buy products or use wishlist.");
+    return;
+  }
+
+  // Seller
+  if (user.role === "seller") {
+    toast.error("Sellers cannot buy products or use wishlist.");
+    return;
+  }
+
+  // Buyer only
+  if (user.role !== "buyer") {
+    toast.error("Only buyers can perform this action.");
+    return;
+  }
+
   try {
     const payload =
       type === "orders"
         ? {
             buyerInfo: {
               email: user.email,
-              name: "Buyer User",
+              name: user.name,
             },
 
             sellerInfo: {
-              email:
-                product.sellerInfo?.email,
-              name:
-                product.sellerInfo?.name,
+              email: product.sellerInfo?.email,
+              name: product.sellerInfo?.name,
             },
 
             productId: product._id,
@@ -78,6 +101,29 @@ export default function ProductDetails() {
             price: product.price,
             createdAt: new Date(),
           };
+
+    const res = await fetch(
+      `https://resell-hub-server-six.vercel.app/${type}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!res.ok) throw new Error();
+
+    toast.success(
+      type === "orders"
+        ? "Order placed successfully."
+        : "Added to wishlist."
+    );
+  } catch (err) {
+    toast.error("Something went wrong.");
+  }
+};
 
     const res = await fetch(
       `https://resell-hub-server-six.vercel.app/${type}`,
