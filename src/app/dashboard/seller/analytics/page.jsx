@@ -61,7 +61,7 @@ export default function SellerAnalytics() {
         setLoading(true);
 
         const res = await fetch(
-          `http://localhost:5000/seller/analytics/${sellerEmail}`
+          `https://resell-hub-server-six.vercel.app/seller/analytics/${sellerEmail}`
         );
 
         const data = await res.json();

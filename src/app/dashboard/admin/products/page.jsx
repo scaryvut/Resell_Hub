@@ -20,7 +20,7 @@ export default function ManageProducts() {
   const fetchProducts = async () => {
     try {
       const res = await fetch(
-        "http://localhost:5000/products"
+        "https://resell-hub-server-six.vercel.app/products"
       );
 
       const data = await res.json();
@@ -57,7 +57,7 @@ export default function ManageProducts() {
   const updateStatus = async (id, status) => {
     try {
       await fetch(
-        `http://localhost:5000/products/${id}`,
+        `https://resell-hub-server-six.vercel.app/products/${id}`,
         {
           method: "PATCH",
           headers: {
@@ -85,7 +85,7 @@ export default function ManageProducts() {
 
     try {
       await fetch(
-        `http://localhost:5000/products/${id}`,
+        `https://resell-hub-server-six.vercel.app/products/${id}`,
         {
           method: "DELETE",
         }

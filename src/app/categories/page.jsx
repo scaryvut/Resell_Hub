@@ -24,7 +24,7 @@ export default function CategoryPage() {
 
   // FETCH DATA
   useEffect(() => {
-    fetch("http://localhost:5000/products")
+    fetch("https://resell-hub-server-six.vercel.app/products")
       .then((res) => res.json())
       .then((data) => {
         setProducts(data);
